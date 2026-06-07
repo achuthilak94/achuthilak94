@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AllTreK Mapping | Aerial Drone & LiDAR Mapping — Calgary, Alberta</title>
+<meta name="description" content="Geologist-led aerial drone and LiDAR-ready mapping for construction, energy, and consulting firms across Alberta. Photogrammetry, topographic mapping, and volumetrics — delivered by people who understand the data." />
+<meta property="og:title" content="AllTreK Mapping — Aerial Drone & LiDAR Mapping, Alberta" />
+<meta property="og:description" content="Survey-grade aerial mapping for the people who use the data. Alberta-wide." />
+<meta property="og:type" content="website" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#070A12;
+    --panel:#0F1730;
+    --cyan:#4CC9F0;
+    --purple:#7C3AED;
+    --text:#EAF0FF;
+    --muted:#B8C2E6;
+    --line:rgba(184,194,230,0.12);
+    --line-strong:rgba(184,194,230,0.22);
+    --maxw:1180px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Archivo',system-ui,sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none}
+  .mono{font-family:'IBM Plex Mono',monospace}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 24px}
+
+  /* ---------- atmospheric background ---------- */
+  .bg-fx{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .bg-fx .grid{
+    position:absolute;inset:-2px;
+    background-image:
+      linear-gradient(var(--line) 1px,transparent 1px),
+      linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:64px 64px;
+    mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,#000 30%,transparent 80%);
+    -webkit-mask-image:radial-gradient(ellipse 90% 70% at 50% 0%,#000 30%,transparent 80%);
+    opacity:.5;
+  }
+  .bg-fx .glow{position:absolute;border-radius:50%;filter:blur(120px);opacity:.45}
+  .bg-fx .glow.c{width:520px;height:520px;background:var(--cyan);top:-160px;left:-120px;opacity:.18}
+  .bg-fx .glow.p{width:480px;height:480px;background:var(--purple);top:240px;right:-160px;opacity:.16}
+  .bg-fx .contour{position:absolute;bottom:-10%;left:50%;transform:translateX(-50%);width:140%;opacity:.10}
+
+  /* ---------- nav ---------- */
+  header.nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);
+    background:rgba(7,10,18,.72);border-bottom:1px solid var(--line)}
+  .nav-inner{display:flex;align-items:center;justify-content:space-between;height:68px}
+  .brand{display:flex;align-items:center;gap:11px;font-weight:800;letter-spacing:.04em;font-size:18px}
+  .brand .mark{width:26px;height:26px;position:relative;flex:none}
+  .brand .mark svg{display:block}
+  .brand b{color:var(--cyan)}
+  .nav-links{display:flex;gap:30px;align-items:center}
+  .nav-links a{font-size:13.5px;color:var(--muted);letter-spacing:.02em;transition:color .2s}
+  .nav-links a:hover{color:var(--text)}
+  .nav-cta{border:1px solid var(--line-strong);padding:9px 16px;border-radius:6px;font-size:13px;
+    font-weight:600;color:var(--text);transition:all .2s}
+  .nav-cta:hover{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan),0 0 24px rgba(76,201,240,.25)}
+  .burger{display:none;background:none;border:1px solid var(--line-strong);border-radius:6px;
+    width:42px;height:38px;cursor:pointer;color:var(--text);font-size:18px}
+
+  /* ---------- section scaffolding ---------- */
+  section{position:relative;z-index:1}
+  .seclabel{display:flex;align-items:center;gap:12px;font-size:12px;letter-spacing:.22em;
+    text-transform:uppercase;color:var(--muted);margin-bottom:22px}
+  .seclabel::before{content:"";width:26px;height:1px;background:var(--cyan)}
+  .seclabel .n{color:var(--cyan)}
+  .pad{padding:96px 0}
+  h2.title{font-size:clamp(28px,4.4vw,46px);font-weight:800;line-height:1.08;letter-spacing:-.01em;max-width:760px}
+  .lead{color:var(--muted);font-size:17px;max-width:620px;margin-top:18px}
+
+  /* ---------- hero ---------- */
+  .hero{padding:clamp(70px,11vw,128px) 0 clamp(56px,8vw,96px);position:relative}
+  .hero .coord{position:absolute;top:18px;right:24px;font-size:11px;color:var(--muted);
+    letter-spacing:.08em;opacity:.7}
+  .eyebrow{display:inline-flex;align-items:center;gap:9px;font-size:12px;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--cyan);border:1px solid var(--line-strong);
+    padding:7px 13px;border-radius:30px;margin-bottom:28px}
+  .eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--cyan);
+    box-shadow:0 0 10px var(--cyan)}
+  .hero h1{font-size:clamp(40px,7.4vw,82px);font-weight:900;line-height:.98;letter-spacing:-.025em;
+    max-width:14ch}
+  .hero h1 .hl{color:transparent;background:linear-gradient(120deg,var(--cyan),var(--purple));
+    -webkit-background-clip:text;background-clip:text}
+  .hero p.sub{color:var(--muted);font-size:clamp(16px,2vw,19px);max-width:60ch;margin-top:26px}
+  .cta-row{display:flex;gap:14px;margin-top:36px;flex-wrap:wrap}
+  .btn{display:inline-flex;align-items:center;gap:10px;padding:15px 26px;border-radius:8px;
+    font-weight:700;font-size:15px;letter-spacing:.01em;transition:all .22s;cursor:pointer;border:1px solid transparent}
+  .btn.primary{background:linear-gradient(120deg,var(--cyan),#5b8def);color:#04111c;
+    box-shadow:0 8px 30px rgba(76,201,240,.28)}
+  .btn.primary:hover{transform:translateY(-2px);box-shadow:0 12px 38px rgba(76,201,240,.42)}
+  .btn.ghost{border-color:var(--line-strong);color:var(--text)}
+  .btn.ghost:hover{border-color:var(--cyan);background:rgba(76,201,240,.06)}
+  .btn .arr{transition:transform .22s}
+  .btn:hover .arr{transform:translateX(4px)}
+
+  /* ---------- stats ---------- */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;margin-top:64px;
+    border:1px solid var(--line);background:var(--line);border-radius:12px;overflow:hidden}
+  .stat{background:rgba(15,23,48,.65);padding:24px 22px;backdrop-filter:blur(6px)}
+  .stat .v{font-family:'IBM Plex Mono',monospace;font-size:clamp(22px,3vw,30px);font-weight:600;
+    color:var(--text);letter-spacing:-.01em}
+  .stat .v b{color:var(--cyan);font-weight:600}
+  .stat .l{font-size:12.5px;color:var(--muted);margin-top:7px;letter-spacing:.04em}
+
+  /* ---------- services ---------- */
+  .svc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:48px}
+  .card{position:relative;background:rgba(15,23,48,.55);border:1px solid var(--line);
+    border-radius:14px;padding:30px 28px 32px;overflow:hidden;transition:all .26s}
+  .card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;
+    background:linear-gradient(90deg,var(--cyan),var(--purple));transform:scaleX(0);
+    transform-origin:left;transition:transform .3s}
+  .card:hover{transform:translateY(-4px);border-color:var(--line-strong);
+    background:rgba(15,23,48,.85)}
+  .card:hover::before{transform:scaleX(1)}
+  .card .ico{width:46px;height:46px;border-radius:10px;display:grid;place-items:center;
+    border:1px solid var(--line-strong);background:rgba(76,201,240,.06);margin-bottom:20px}
+  .card .ico svg{width:22px;height:22px;stroke:var(--cyan)}
+  .card h3{font-size:20px;font-weight:700;letter-spacing:-.01em}
+  .card p{color:var(--muted);font-size:14.5px;margin-top:11px}
+  .card .tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:18px}
+  .card .tags span{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);
+    border:1px solid var(--line);padding:5px 9px;border-radius:5px}
+  .card.wide{grid-column:1 / -1;background:
+    linear-gradient(120deg,rgba(124,58,237,.10),rgba(76,201,240,.06)),rgba(15,23,48,.6)}
+
+  /* ---------- industries ---------- */
+  .ind-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;margin-top:48px;
+    background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .ind{background:rgba(15,23,48,.5);padding:30px 26px;transition:background .22s;position:relative}
+  .ind:hover{background:rgba(15,23,48,.9)}
+  .ind .num{font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--cyan);opacity:.8}
+  .ind h4{font-size:18px;font-weight:700;margin-top:12px}
+  .ind p{font-size:13.5px;color:var(--muted);margin-top:8px}
+
+  /* ---------- projects ---------- */
+  .proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:48px}
+  .proj{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:rgba(15,23,48,.5);
+    transition:all .26s}
+  .proj:hover{transform:translateY(-4px);border-color:var(--line-strong)}
+  .proj .img{aspect-ratio:16/10;position:relative;background:
+    radial-gradient(circle at 30% 30%,rgba(76,201,240,.18),transparent 60%),
+    radial-gradient(circle at 70% 70%,rgba(124,58,237,.16),transparent 60%),#0a1124;
+    display:grid;place-items:center;overflow:hidden}
+  .proj .img svg{width:100%;height:100%;opacity:.5}
+  .proj .meta{padding:20px}
+  .proj .meta .k{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--cyan);
+    letter-spacing:.08em}
+  .proj .meta h4{font-size:16.5px;font-weight:700;margin-top:8px}
+  .proj .meta p{font-size:13px;color:var(--muted);margin-top:6px}
+  .note{margin-top:22px;font-size:13px;color:var(--muted);border-left:2px solid var(--cyan);
+    padding-left:14px;opacity:.85}
+
+  /* ---------- quote form ---------- */
+  .quote{background:
+    linear-gradient(180deg,transparent,rgba(124,58,237,.05)),rgba(15,23,48,.4)}
+  .quote-grid{display:grid;grid-template-columns:.85fr 1.15fr;gap:54px;margin-top:46px;align-items:start}
+  .quote-left h2{font-size:clamp(26px,3.6vw,38px);font-weight:800;line-height:1.1;letter-spacing:-.01em}
+  .quote-left p{color:var(--muted);margin-top:18px;font-size:15.5px}
+  .quote-left ul{list-style:none;margin-top:26px;display:grid;gap:14px}
+  .quote-left li{display:flex;gap:12px;font-size:14.5px;color:var(--muted);align-items:flex-start}
+  .quote-left li svg{width:18px;height:18px;stroke:var(--cyan);flex:none;margin-top:2px}
+  form{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .field{display:flex;flex-direction:column;gap:7px}
+  .field.full{grid-column:1 / -1}
+  label{font-size:12px;letter-spacing:.05em;color:var(--muted);text-transform:uppercase;
+    font-family:'IBM Plex Mono',monospace}
+  input,select,textarea{background:rgba(7,10,18,.6);border:1px solid var(--line-strong);
+    border-radius:8px;padding:12px 14px;color:var(--text);font-family:inherit;font-size:14.5px;
+    transition:border-color .2s,box-shadow .2s}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--cyan);
+    box-shadow:0 0 0 3px rgba(76,201,240,.14)}
+  textarea{resize:vertical;min-height:108px}
+  select{appearance:none;cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23B8C2E6' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 14px center}
+  .field.full .btn{width:100%;justify-content:center;margin-top:4px}
+  .form-note{grid-column:1/-1;font-size:12px;color:var(--muted);opacity:.75;text-align:center}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line);margin-top:40px;position:relative;z-index:1}
+  .foot{display:flex;justify-content:space-between;gap:30px;padding:54px 0 28px;flex-wrap:wrap}
+  .foot .brand{font-size:20px;margin-bottom:14px}
+  .foot-col h5{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);
+    margin-bottom:14px;font-family:'IBM Plex Mono',monospace}
+  .foot-col a,.foot-col p{display:block;color:var(--muted);font-size:14px;margin-bottom:9px;transition:color .2s}
+  .foot-col a:hover{color:var(--cyan)}
+  .legal{border-top:1px solid var(--line);padding:22px 0 40px;display:flex;justify-content:space-between;
+    gap:20px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+  .legal .disc{max-width:640px;opacity:.7;line-height:1.5}
+
+  /* ---------- reveal anim ---------- */
+  .reveal{opacity:0;transform:translateY(24px);transition:opacity .7s ease,transform .7s ease}
+  .reveal.in{opacity:1;transform:none}
+  @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none;transition:none}}
+
+  /* ---------- responsive ---------- */
+  @media(max-width:860px){
+    .nav-links{display:none}
+    .nav-links.open{display:flex;position:absolute;top:68px;left:0;right:0;flex-direction:column;
+      gap:0;background:rgba(7,10,18,.97);border-bottom:1px solid var(--line);padding:8px 24px 18px}
+    .nav-links.open a{padding:13px 0;border-bottom:1px solid var(--line);font-size:15px}
+    .nav-links.open .nav-cta{margin-top:12px;text-align:center}
+    .burger{display:block}
+    .stats{grid-template-columns:1fr 1fr}
+    .svc-grid{grid-template-columns:1fr}
+    .ind-grid{grid-template-columns:1fr 1fr}
+    .proj-grid{grid-template-columns:1fr}
+    .quote-grid{grid-template-columns:1fr;gap:38px}
+    .pad{padding:72px 0}
+  }
+  @media(max-width:520px){
+    .hero .coord{display:none}
+    .stats{grid-template-columns:1fr 1fr}
+    .ind-grid{grid-template-columns:1fr}
+    form{grid-template-columns:1fr}
+    .foot{flex-direction:column;gap:34px}
+  }
+</style>
+</head>
+<body>
+
+<!-- atmospheric background -->
+<div class="bg-fx" aria-hidden="true">
+  <div class="grid"></div>
+  <div class="glow c"></div>
+  <div class="glow p"></div>
+  <svg class="contour" viewBox="0 0 1200 400" fill="none" preserveAspectRatio="none">
+    <g stroke="#4CC9F0" stroke-width="1" opacity="0.6">
+      <path d="M0 320 Q300 240 600 300 T1200 280"/>
+      <path d="M0 350 Q300 280 600 330 T1200 320"/>
+      <path d="M0 290 Q300 200 600 270 T1200 240"/>
+      <path d="M0 260 Q300 170 600 240 T1200 210"/>
+    </g>
+  </svg>
+</div>
+
+<!-- nav -->
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a href="#top" class="brand">
+      <span class="mark">
+        <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+          <path d="M13 2L24 22H2L13 2Z" stroke="#4CC9F0" stroke-width="1.6"/>
+          <path d="M13 9L18.5 19H7.5L13 9Z" fill="#4CC9F0" fill-opacity="0.18" stroke="#7C3AED" stroke-width="1.2"/>
+        </svg>
+      </span>
+      All<b>TreK</b>&nbsp;Mapping
+    </a>
+    <nav class="nav-links" id="navlinks">
+      <a href="#services">Capabilities</a>
+      <a href="#industries">Industries</a>
+      <a href="#projects">Work</a>
+      <a href="#quote" class="nav-cta">Request a Quote</a>
+    </nav>
+    <button class="burger" id="burger" aria-label="Menu">≡</button>
+  </div>
+</header>
+
+<!-- hero -->
+<section class="hero" id="top">
+  <span class="coord mono">51.0447° N&nbsp;&nbsp;/&nbsp;&nbsp;114.0719° W — CALGARY, AB</span>
+  <div class="wrap">
+    <span class="eyebrow mono reveal"><span class="dot"></span>Geologist-led · Alberta-wide</span>
+    <h1 class="reveal">Survey-grade aerial mapping <span class="hl">for the people who use the data.</span></h1>
+    <p class="sub reveal">Photogrammetry, topographic mapping, volumetrics, and LiDAR-ready data acquisition for construction, energy, and consulting firms across Alberta — run by a geologist who understands what the data is for.</p>
+    <div class="cta-row reveal">
+      <a href="#quote" class="btn primary">Request a Quote <span class="arr">→</span></a>
+      <a href="#services" class="btn ghost">View Capabilities</a>
+    </div>
+
+    <div class="stats reveal">
+      <div class="stat"><div class="v"><b>72</b>h</div><div class="l">Standard turnaround</div></div>
+      <div class="stat"><div class="v">Adv. Ops</div><div class="l">Transport Canada certified</div></div>
+      <div class="stat"><div class="v"><b>$5</b>M</div><div class="l">Liability insured</div></div>
+      <div class="stat"><div class="v">AB-wide</div><div class="l">Field deployment</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- services -->
+<section class="pad" id="services">
+  <div class="wrap">
+    <div class="seclabel reveal"><span class="n">01</span> / Capabilities</div>
+    <h2 class="title reveal">Aerial data acquisition and processing, built around how the data gets used.</h2>
+    <div class="svc-grid">
+
+      <div class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M3 6l9-3 9 3-9 3-9-3z"/><path d="M3 6v6l9 3 9-3V6"/><path d="M12 9v9"/></svg></div>
+        <h3>Topographic Mapping &amp; Volumetrics</h3>
+        <p>Survey-grade orthomosaics, contours, and 3D surface models for engineering and construction. Cut/fill analysis, stockpile volumes, and earthworks monitoring with repeat-flight comparison.</p>
+        <div class="tags"><span>Orthomosaics</span><span>DTM / DSM</span><span>Cut &amp; Fill</span><span>Stockpiles</span></div>
+      </div>
+
+      <div class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="4"/><path d="M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg></div>
+        <h3>LiDAR-Ready Data Acquisition</h3>
+        <p>Point cloud generation for corridor mapping, vegetation-penetrating bare-earth models, and geohazard documentation — delivered in industry-standard LAS/LAZ ready for downstream engineering workflows.</p>
+        <div class="tags"><span>Point Clouds</span><span>Bare-Earth</span><span>LAS / LAZ</span><span>Corridors</span></div>
+      </div>
+
+      <div class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="3" y="4" width="18" height="14" rx="1.5"/><path d="M3 18l5-5 4 3 5-6 4 4"/><circle cx="8" cy="9" r="1.5"/></svg></div>
+        <h3>Industrial &amp; Energy Site Documentation</h3>
+        <p>Lease-site mapping, ROW inspection, reclamation documentation, and tailings/berm monitoring. Built for clients who need defensible aerial records of a site over time.</p>
+        <div class="tags"><span>Lease Sites</span><span>ROW</span><span>Reclamation</span><span>Monitoring</span></div>
+      </div>
+
+      <div class="card reveal">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M4 20h16M6 20V9l6-5 6 5v11"/><path d="M10 20v-5h4v5"/></svg></div>
+        <h3>Real Estate &amp; Development Media</h3>
+        <p>High-resolution aerial photography, development flyovers, and marketing video for property and land-development projects across the Calgary region and beyond.</p>
+        <div class="tags"><span>Aerial Photo</span><span>Flyovers</span><span>4K Video</span></div>
+      </div>
+
+      <div class="card wide reveal">
+        <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 2l3 6 6 1-4.5 4.3L18 20l-6-3-6 3 1.5-6.7L3 9l6-1 3-6z"/></svg></div>
+        <h3>Geospatial Data for Engineering &amp; Consulting Firms</h3>
+        <p>White-label drone data acquisition and processing for geotechnical, environmental, and civil consultancies. Your project, your stamp — our pilot, our drone, your deliverables. The aerial data layer for firms that don't want to build it in-house.</p>
+        <div class="tags"><span>White-Label</span><span>Subcontract</span><span>Geotech Support</span><span>Environmental</span><span>Civil</span></div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- industries -->
+<section class="pad" id="industries">
+  <div class="wrap">
+    <div class="seclabel reveal"><span class="n">02</span> / Industries Served</div>
+    <h2 class="title reveal">Field-hardened for Alberta's working sectors.</h2>
+    <div class="ind-grid">
+      <div class="ind reveal"><div class="num">/01</div><h4>Construction</h4><p>Topo, earthworks, and progress monitoring for commercial builds and subdivisions.</p></div>
+      <div class="ind reveal"><div class="num">/02</div><h4>Oil &amp; Gas</h4><p>Lease mapping, ROW, and reclamation documentation for energy operators.</p></div>
+      <div class="ind reveal"><div class="num">/03</div><h4>Utilities</h4><p>Corridor and infrastructure mapping for transmission and pipeline projects.</p></div>
+      <div class="ind reveal"><div class="num">/04</div><h4>Municipal</h4><p>Asset management, drainage modeling, and infrastructure planning data.</p></div>
+      <div class="ind reveal"><div class="num">/05</div><h4>Environmental</h4><p>Geohazard, vegetation, and footprint data for environmental consultancies.</p></div>
+      <div class="ind reveal"><div class="num">/06</div><h4>Real Estate</h4><p>Aerial media and development flyovers for land and property projects.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- projects -->
+<section class="pad" id="projects">
+  <div class="wrap">
+    <div class="seclabel reveal"><span class="n">03</span> / Selected Work</div>
+    <h2 class="title reveal">Sample deliverables.</h2>
+    <div class="proj-grid">
+      <div class="proj reveal">
+        <div class="img"><svg viewBox="0 0 300 188" preserveAspectRatio="none"><g stroke="#4CC9F0" stroke-width="1" fill="none" opacity="0.7"><path d="M0 140 Q75 100 150 130 T300 120"/><path d="M0 155 Q75 120 150 145 T300 138"/><path d="M0 120 Q75 75 150 110 T300 95"/></g><circle cx="150" cy="94" r="3" fill="#7C3AED"/></svg></div>
+        <div class="meta"><div class="k mono">TOPOGRAPHIC</div><h4>Construction Topo Mapping</h4><p>Orthomosaic + contour set for a commercial site grading package.</p></div>
+      </div>
+      <div class="proj reveal">
+        <div class="img"><svg viewBox="0 0 300 188" preserveAspectRatio="none"><g stroke="#4CC9F0" stroke-width="0.8" fill="none" opacity="0.6"><path d="M40 30 L260 30 L230 158 L70 158 Z"/><path d="M70 60 L230 60M85 90 L215 90M100 120 L200 120"/></g></svg></div>
+        <div class="meta"><div class="k mono">VOLUMETRIC</div><h4>Stockpile &amp; Earthworks Tracking</h4><p>Monthly volume reporting with cut/fill comparison over a build cycle.</p></div>
+      </div>
+      <div class="proj reveal">
+        <div class="img"><svg viewBox="0 0 300 188" preserveAspectRatio="none"><g stroke="#7C3AED" stroke-width="1" fill="none" opacity="0.7"><path d="M0 94 L300 94"/><path d="M40 70 L40 118M90 60 L90 128M150 50 L150 138M210 64 L210 124M260 78 L260 110"/></g></svg></div>
+        <div class="meta"><div class="k mono">INDUSTRIAL</div><h4>Lease Site Documentation</h4><p>Geo-referenced aerial record for energy lease compliance and planning.</p></div>
+      </div>
+    </div>
+    <p class="note mono">Replace these placeholders with your real first deliverables — one strong orthomosaic + DTM + volumetric report does more for credibility than any styling. Add a screenshot or interactive viewer link per project.</p>
+  </div>
+</section>
+
+<!-- quote -->
+<section class="pad quote" id="quote">
+  <div class="wrap">
+    <div class="seclabel reveal"><span class="n">04</span> / Request a Quote</div>
+    <div class="quote-grid">
+      <div class="quote-left reveal">
+        <h2>Tell us about the site. We'll scope the flight.</h2>
+        <p>Send the project details and you'll get a scoped quote — typically within one business day. No obligation.</p>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Transport Canada Advanced Operations certified</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> $5M aviation liability coverage</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Deliverables in DWG / DXF, LAS / LAZ, GeoTIFF</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg> Standard 72-hour turnaround, rush available</li>
+        </ul>
+      </div>
+
+      <form class="reveal" action="https://formspree.io/f/xgoqzdln" method="POST">
+        <div class="field">
+          <label for="name">Name</label>
+          <input id="name" name="name" type="text" required placeholder="Full name" />
+        </div>
+        <div class="field">
+          <label for="email">Email</label>
+          <input id="email" name="email" type="email" required placeholder="you@company.com" />
+        </div>
+        <div class="field">
+          <label for="phone">Phone</label>
+          <input id="phone" name="phone" type="tel" placeholder="(403) 000-0000" />
+        </div>
+        <div class="field">
+          <label for="ptype">Project Type</label>
+          <select id="ptype" name="project_type" required>
+            <option value="" disabled selected>Select…</option>
+            <option>Topographic Mapping / Volumetrics</option>
+            <option>LiDAR Data Acquisition</option>
+            <option>Industrial / Energy Site Documentation</option>
+            <option>Real Estate / Development Media</option>
+            <option>White-Label Data for Consulting Firm</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="loc">Project Location</label>
+          <input id="loc" name="location" type="text" placeholder="Site / town, Alberta" />
+        </div>
+        <div class="field">
+          <label for="size">Site Size</label>
+          <input id="size" name="site_size" type="text" placeholder="e.g. 18 acres" />
+        </div>
+        <div class="field full">
+          <label for="timeline">Timeline</label>
+          <input id="timeline" name="timeline" type="text" placeholder="When do you need it?" />
+        </div>
+        <div class="field full">
+          <label for="desc">Project Description</label>
+          <textarea id="desc" name="description" placeholder="What are you trying to capture, and what will the data be used for?"></textarea>
+        </div>
+        <div class="field full">
+          <button type="submit" class="btn primary">Send Request <span class="arr">→</span></button>
+        </div>
+        <p class="form-note mono">Powered by Formspree · replace YOUR_FORM_ID before going live</p>
+      </form>
+    </div>
+  </div>
+</section>
+
+<!-- footer -->
+<footer>
+  <div class="wrap foot">
+    <div class="foot-col">
+      <a href="#top" class="brand">All<b>TreK</b>&nbsp;Mapping</a>
+      <p style="color:var(--muted);max-width:280px;font-size:14px">Geologist-led aerial drone &amp; LiDAR-ready mapping. Where the work is, we fly.</p>
+    </div>
+    <div class="foot-col">
+      <h5>Capabilities</h5>
+      <a href="#services">Topographic Mapping</a>
+      <a href="#services">LiDAR Acquisition</a>
+      <a href="#services">Site Documentation</a>
+      <a href="#services">Consulting Support</a>
+    </div>
+    <div class="foot-col">
+      <h5>Company</h5>
+      <a href="#industries">Industries</a>
+      <a href="#projects">Work</a>
+      <a href="#quote">Request a Quote</a>
+    </div>
+    <div class="foot-col">
+      <h5>Contact</h5>
+      <a href="mailto:info@alltrekmapping.com">info@alltrekmapping.com</a>
+      <p>Calgary, Alberta</p>
+      <p>Alberta-wide deployment</p>
+    </div>
+  </div>
+  <div class="wrap legal">
+    <span>© 2026 AllTreK Mapping · Calgary, Alberta</span>
+    <span class="disc">AllTreK Mapping provides aerial mapping and geospatial data acquisition for engineering and informational purposes. AllTreK does not perform cadastral or legal land surveys, which in Alberta are reserved for Alberta Land Surveyors.</span>
+  </div>
+</footer>
+
+<script>
+  // mobile menu
+  var burger=document.getElementById('burger'),links=document.getElementById('navlinks');
+  burger.addEventListener('click',function(){links.classList.toggle('open')});
+  links.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){links.classList.remove('open')})});
+
+  // staggered hero reveal on load
+  window.addEventListener('load',function(){
+    document.querySelectorAll('.hero .reveal').forEach(function(el,i){
+      setTimeout(function(){el.classList.add('in')},120*i+80);
+    });
+  });
+
+  // scroll reveal
+  var io=new IntersectionObserver(function(entries){
+    entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}});
+  },{threshold:0.12});
+  document.querySelectorAll('.reveal').forEach(function(el){
+    if(!el.closest('.hero')) io.observe(el);
+  });
+</script>
+</body>
+</html>
